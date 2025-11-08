@@ -57,7 +57,7 @@ export default function Home() {
   };
 
   return (
-    <main className="relative min-h-screen p-4 md:p-8 bg-cover bg-center" style={{ backgroundImage: `url('/background.gif')` }}>
+    <main className="relative min-h-screen p-4 md:p-8">
       <audio ref={audioRef} src="/ambient-music.mp3" loop muted />
 
       <div className="absolute bottom-4 left-4 flex items-center gap-4">
