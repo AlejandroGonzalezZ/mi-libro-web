@@ -12,35 +12,41 @@ export default function CapituloPage() {
     const capitulo = libro.capitulos.find(c => c.slug === params.slug);
 
     const [isReading, setIsReading] = useState(false);
-    const [voices, setVoices] = useState([]); // Nuevo estado para las voces
+    const [voices, setVoices] = useState([]);
+    const [isTtsSupported, setIsTtsSupported] = useState(true); // Nuevo estado para la compatibilidad
     const utteranceRef = useRef(null);
 
     useEffect(() => {
+        const checkTtsSupport = () => {
+            if (!('speechSynthesis' in window)) {
+                setIsTtsSupported(false);
+                console.error("SpeechSynthesis no soportado en este navegador.");
+                return;
+            }
+
+            const availableVoices = speechSynthesis.getVoices();
+            if (availableVoices.length > 0) {
+                setVoices(availableVoices);
+            } else {
+                speechSynthesis.onvoiceschanged = () => {
+                    const updatedVoices = speechSynthesis.getVoices();
+                    if (updatedVoices.length === 0) {
+                        setIsTtsSupported(false);
+                        console.error("No se encontraron voces de speechSynthesis.");
+                    }
+                    setVoices(updatedVoices);
+                };
+            }
+        };
+
+        checkTtsSupport();
+
         // Limpiar la síntesis de voz si el usuario navega fuera de la página
         return () => {
-            speechSynthesis.cancel();
-        };
-    }, []);
-
-    useEffect(() => {
-        // Función para cargar las voces
-        const loadVoices = () => {
-            const availableVoices = speechSynthesis.getVoices();
-            setVoices(availableVoices);
-            console.log("Voces cargadas:", availableVoices);
-        };
-
-        // Cargar voces inmediatamente si ya están disponibles
-        if (speechSynthesis.getVoices().length > 0) {
-            loadVoices();
-        } else {
-            // Si no, esperar al evento voiceschanged
-            speechSynthesis.onvoiceschanged = loadVoices;
-        }
-
-        // Limpiar el evento al desmontar el componente
-        return () => {
-            speechSynthesis.onvoiceschanged = null;
+            if ('speechSynthesis' in window) {
+                speechSynthesis.cancel();
+                speechSynthesis.onvoiceschanged = null;
+            }
         };
     }, []);
 
@@ -50,12 +56,6 @@ export default function CapituloPage() {
 
     const handlePlayPause = () => {
         console.log("Botón de lectura presionado.");
-
-        if (!('speechSynthesis' in window)) {
-            alert("Lo siento, tu navegador no soporta la síntesis de voz.");
-            console.error("SpeechSynthesis no soportado en este navegador.");
-            return;
-        }
 
         if (speechSynthesis.speaking) {
             if (isReading) {
@@ -68,18 +68,22 @@ export default function CapituloPage() {
                 console.log("Síntesis de voz reanudada.");
             }
         } else {
-            // Usar las voces del estado
-            const spanishVoice = voices.find(voice => voice.lang === 'es-ES' || voice.lang.startsWith('es-'));
+            let voiceToUse = voices.find(voice => voice.lang === 'es-ES' || voice.lang.startsWith('es-'));
+            let isFallback = false;
 
-            if (!spanishVoice) {
-                alert("No se encontró una voz en español en tu sistema. Por favor, asegúrate de tener una voz en español instalada en la configuración de tu sistema operativo/navegador.");
-                console.error("No se encontró voz en español.", voices);
-                return;
+            if (!voiceToUse && voices.length > 0) {
+                console.warn("No se encontró voz en español. Buscando una voz de respaldo.");
+                voiceToUse = voices.find(voice => voice.lang.startsWith('en-')) || voices[0];
+                isFallback = true;
+            }
+
+            if (isFallback) {
+                alert(`No se encontró una voz en español. Se usará una voz alternativa "${voiceToUse.name} (${voiceToUse.lang})", pero la pronunciación podría no ser correcta.`);
             }
 
             const utterance = new SpeechSynthesisUtterance(capitulo.texto);
-            utterance.lang = spanishVoice.lang; // Usar el idioma de la voz encontrada
-            utterance.voice = spanishVoice; // Asignar la voz encontrada
+            utterance.lang = voiceToUse.lang;
+            utterance.voice = voiceToUse;
             utterance.rate = 0.9;
 
             utterance.onend = () => {
@@ -111,7 +115,12 @@ export default function CapituloPage() {
                         <FaHome />
                         <span className="hidden md:inline">Volver al Menú</span>
                     </Link>
-                    <button onClick={handlePlayPause} className="text-4xl text-cyan-400 hover:text-white transition-colors">
+                    <button 
+                        onClick={handlePlayPause} 
+                        className={`text-4xl transition-colors ${isTtsSupported ? 'text-cyan-400 hover:text-white' : 'text-gray-500 cursor-not-allowed'}`}
+                        disabled={!isTtsSupported}
+                        title={isTtsSupported ? (isReading ? 'Pausar lectura' : 'Leer en voz alta') : 'Texto a voz no disponible en este dispositivo'}
+                    >
                         {isReading ? <FaPause /> : <FaPlay />}
                     </button>
                 </div>
