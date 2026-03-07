@@ -2,6 +2,7 @@
   "name": "mi-libro-web",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
   "scripts": {
     "dev": "next dev --turbopack",
     "build": "next build",
@@ -9,6 +10,8 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.98.0",
+    "dotenv": "^17.3.1",
     "firebase": "^12.0.0",
     "next": "15.4.4",
     "react": "19.1.0",
