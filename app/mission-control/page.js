@@ -33,6 +33,7 @@ export default function MissionControl() {
   const [isPlaying, setIsPlaying] = useState(false);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [showIntegrityWarning, setShowIntegrityWarning] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
   
   const audioRef = useRef(null);
   const fileInputRefs = [useRef(null), useRef(null), useRef(null)];
@@ -113,6 +114,7 @@ export default function MissionControl() {
     if (!file || !selectedCap) return;
 
     try {
+      setIsUploading(true);
       const bucket = type === 'audio' ? 'audios' : 'capitulos';
       const fileExt = file.name.split('.').pop();
       const fileName = `${selectedCap.id || 'new'}_${type}${index !== null ? `_${index}` : ''}_${Date.now()}.${fileExt}`;
@@ -167,6 +169,8 @@ export default function MissionControl() {
     } catch (err) {
       console.error("Upload error:", err.message);
       alert("Error uploading file: " + err.message);
+    } finally {
+      setIsUploading(false);
     }
   };
 
@@ -441,8 +445,8 @@ export default function MissionControl() {
                     </div>
 
                     <div 
-                      onClick={() => audioInputRef.current.click()}
-                      className="w-full h-24 border border-dashed border-cyan-500/20 flex flex-col items-center justify-center gap-2 group cursor-pointer hover:bg-cyan-500/5 transition-all"
+                      onClick={() => !isUploading && audioInputRef.current.click()}
+                      className={`w-full h-24 border border-dashed border-cyan-500/20 flex flex-col items-center justify-center gap-2 group transition-all ${isUploading ? 'cursor-wait opacity-50' : 'cursor-pointer hover:bg-cyan-500/5'}`}
                     >
                       <input 
                         type="file" 
@@ -451,7 +455,14 @@ export default function MissionControl() {
                         accept="audio/*"
                         onChange={(e) => handleFileUpload(e, 'audio')} 
                       />
-                      {audio ? (
+                      {isUploading ? (
+                        <div className="flex flex-col items-center gap-3 w-full px-8">
+                          <span className="text-[10px] font-mono text-cyan-400 animate-pulse uppercase tracking-widest">Uploading_To_Orbit...</span>
+                          <div className="w-full h-1 bg-cyan-900/50 rounded-full overflow-hidden">
+                            <div className="h-full bg-cyan-400 animate-progress-loading shadow-[0_0_10px_#22d3ee]"></div>
+                          </div>
+                        </div>
+                      ) : audio ? (
                         <div className="flex flex-col items-center gap-2 w-full px-4 text-center">
                            <div className="flex items-center gap-4">
                             <button onClick={togglePlay} className="w-8 h-8 rounded-full bg-cyan-500 flex items-center justify-center text-black hover:scale-105 transition-transform">
@@ -492,8 +503,8 @@ export default function MissionControl() {
                       {images.map((img, idx) => (
                         <div key={idx} className="relative group">
                           <div 
-                            onClick={() => fileInputRefs[idx].current.click()}
-                            className="w-full aspect-video border border-cyan-500/20 bg-cyan-950/20 flex flex-col items-center justify-center gap-2 overflow-hidden cursor-pointer"
+                            onClick={() => !isUploading && fileInputRefs[idx].current.click()}
+                            className={`w-full aspect-video border border-cyan-500/20 bg-cyan-950/20 flex flex-col items-center justify-center gap-2 overflow-hidden transition-all ${isUploading ? 'cursor-wait opacity-50' : 'cursor-pointer'}`}
                           >
                             <input 
                               type="file" 
@@ -502,7 +513,13 @@ export default function MissionControl() {
                               accept="image/*"
                               onChange={(e) => handleFileUpload(e, 'image', idx)} 
                             />
-                            {img ? (
+                            {isUploading ? (
+                               <div className="flex flex-col items-center gap-2 w-full px-12">
+                                  <div className="w-full h-1 bg-cyan-900/50 rounded-full overflow-hidden">
+                                    <div className="h-full bg-cyan-400 animate-progress-loading shadow-[0_0_10px_#22d3ee]"></div>
+                                  </div>
+                               </div>
+                            ) : img ? (
                               <>
                                 <img src={img.url_archivo} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
                                 <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-4">

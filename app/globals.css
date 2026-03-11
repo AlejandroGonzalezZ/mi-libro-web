@@ -196,3 +196,13 @@ body {
     height: 100%;
   }
 }
+
+/* --- ANIMACIONES DE CARGA --- */
+@keyframes progress-loading {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+.animate-progress-loading {
+  animation: progress-loading 1.5s infinite linear;
+}
