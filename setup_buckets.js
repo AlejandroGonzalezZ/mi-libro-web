@@ -13,7 +13,7 @@ async function setupBuckets() {
       console.log(`Creating bucket: ${bucket}`);
       const { error } = await supabaseAdmin.storage.createBucket(bucket, {
         public: true,
-        allowedMimeTypes: bucket === 'audios' ? ['audio/mpeg', 'audio/wav', 'audio/ogg'] : ['image/png', 'image/jpeg', 'image/webp'],
+        allowedMimeTypes: bucket === 'audios' ? ['audio/mpeg', 'audio/wav', 'audio/ogg', 'audio/mp4', 'audio/x-m4a'] : ['image/png', 'image/jpeg', 'image/webp'],
         fileSizeLimit: 52428800 // 50MB
       });
       if (error) console.error(`Error creating ${bucket}:`, error.message);
