@@ -117,15 +117,20 @@ export default function MissionControl() {
       const fileExt = file.name.split('.').pop();
       const fileName = `${selectedCap.id || 'new'}_${type}${index !== null ? `_${index}` : ''}_${Date.now()}.${fileExt}`;
 
-      const uploadFormData = new FormData();
-      uploadFormData.append('file', file);
-      uploadFormData.append('bucket', bucket);
-      uploadFormData.append('fileName', fileName);
+      // CARGA DIRECTA DESDE EL CLIENTE (Evita error 413 de Vercel)
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from(bucket)
+        .upload(fileName, file, {
+          cacheControl: '3600',
+          upsert: true
+        });
 
-      const uploadResult = await uploadFileAction(uploadFormData);
-      if (!uploadResult.success) throw new Error(uploadResult.error);
+      if (uploadError) throw uploadError;
 
-      const publicUrl = uploadResult.publicUrl;
+      // Obtener URL pública
+      const { data: { publicUrl } } = supabase.storage
+        .from(bucket)
+        .getPublicUrl(fileName);
 
       if (type === 'audio') {
         const audioData = {
@@ -417,7 +422,14 @@ export default function MissionControl() {
                   {/* Audio Control */}
                   <div className="hud-panel-enclosed p-4 bg-black/60 border border-cyan-500/20 space-y-4">
                     <div className="flex justify-between items-center">
-                      <span className="text-[9px] font-mono text-orange-400 uppercase font-extrabold tracking-widest">Audio Comms (MP3)</span>
+                      <div className="flex flex-col">
+                        <span className="text-[9px] font-mono text-orange-400 uppercase font-extrabold tracking-widest">Audio Comms (MP3)</span>
+                        {audio && (
+                          <span className="text-[8px] font-mono text-green-500/80 uppercase animate-pulse">
+                            EXISTING_LINK: {audio.descripcion || 'archivo_sin_nombre.mp3'}
+                          </span>
+                        )}
+                      </div>
                       {audio && (
                         <button 
                           onClick={(e) => { e.stopPropagation(); handleDeleteMedia(audio); }}

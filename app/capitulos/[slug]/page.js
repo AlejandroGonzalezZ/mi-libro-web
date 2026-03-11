@@ -310,7 +310,7 @@ export default function CapituloPage() {
 
             <audio
                 ref={audioRef}
-                src={slug.startsWith("capitulo-1") ? "/Audio-Cap01.mp3" : slug.startsWith("capitulo-2") ? "/Audio-Cap02.mp3" : capitulo.audio_url || "/audio/placeholder.mp3"}
+                src={capitulo.audio_url || (multimedia.find(m => m.tipo === 'audio')?.url_archivo) || "/audio/placeholder.mp3"}
                 onTimeUpdate={handleTimeUpdate}
                 onLoadedMetadata={handleTimeUpdate}
                 onEnded={() => setIsPlaying(false)}
