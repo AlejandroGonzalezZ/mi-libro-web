@@ -470,8 +470,9 @@ export default function MissionControl() {
                             </button>
                             <span className="text-[10px] font-mono truncate max-w-[150px]">{audio.descripcion || 'Audio_File.mp3'}</span>
                            </div>
-                           <div className="w-full h-1 bg-cyan-900 rounded-full overflow-hidden">
-                              <div className="h-full bg-cyan-400 w-1/3 shadow-[0_0_10px_#22d3ee]"></div>
+                           <div className="flex items-center gap-2">
+                              <div className="w-1 h-1 bg-cyan-400 animate-pulse rounded-full"></div>
+                              <span className="text-[8px] font-mono text-cyan-400/60 uppercase tracking-tighter">Audio_Link_Stable</span>
                            </div>
                         </div>
                       ) : (
