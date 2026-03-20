@@ -139,9 +139,11 @@ export default function CodexPage() {
                                 )}
 
                                 <div className="space-y-4">
-                                    <p className="text-sm text-cyan-50/60 leading-relaxed line-clamp-4 group-hover:text-cyan-50/90 transition-colors">
-                                        {item.descripcion}
-                                    </p>
+                                    <div className="max-h-32 overflow-y-auto hud-scrollbar pr-2 group-hover:text-cyan-50/90 transition-colors">
+                                        <p className="text-sm text-cyan-50/60 leading-relaxed">
+                                            {item.descripcion}
+                                        </p>
+                                    </div>
 
                                     <div className="pt-4 border-t border-cyan-500/10 flex justify-between items-center text-[8px] font-mono text-cyan-500/40 uppercase tracking-widest">
                                         <span>STATUS: {item.metadata?.status || 'Active'}</span>

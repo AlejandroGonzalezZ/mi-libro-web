@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { supabase } from '../lib/supabase';
-import { FaVolumeUp, FaVolumeMute, FaArrowRight, FaRocket, FaDatabase, FaBook, FaCogs } from 'react-icons/fa';
+import { FaVolumeUp, FaVolumeMute, FaArrowRight, FaRocket, FaDatabase, FaBook, FaCogs, FaDownload } from 'react-icons/fa';
 
 export default function Home() {
   const [capitulos, setCapitulos] = useState([]);
@@ -125,6 +125,82 @@ export default function Home() {
     }
   }
 
+  const exportFullBookData = async () => {
+    try {
+      setLoading(true);
+      // 1. Obtener Capítulos con su contenido
+      const { data: capitulosRaw, error: capsError } = await supabase
+        .from('capitulos')
+        .select('id, numero_orden, titulo, contenido')
+        .order('numero_orden', { ascending: true });
+
+      if (capsError) throw capsError;
+
+      // 2. Obtener Glosario (personajes)
+      const { data: glosario, error: glosError } = await supabase
+        .from('personajes')
+        .select('nombre, descripcion, imagen_referencia, metadata');
+
+      if (glosError) throw glosError;
+
+      // 3. Obtener Multimedia para las imágenes de los capítulos
+      const { data: multimedia, error: multError } = await supabase
+        .from('multimedia')
+        .select('capitulo_id, url_archivo, tipo, metadata');
+
+      if (multError) throw multError;
+
+      // 4. Formatear Glosario por tipos
+      const glosarioEstructurado = {
+        personajes: glosario.filter(g => g.metadata?.tipo === 'personaje').map(g => ({ nombre: g.nombre, descripcion: g.descripcion, url_imagen: g.imagen_referencia })),
+        especies: glosario.filter(g => g.metadata?.tipo === 'especie').map(g => ({ nombre: g.nombre, descripcion: g.descripcion, url_imagen: g.imagen_referencia })),
+        localizaciones: glosario.filter(g => g.metadata?.tipo === 'lugar').map(g => ({ nombre: g.nombre, descripcion: g.descripcion, url_imagen: g.imagen_referencia }))
+      };
+
+      // 5. Construir el JSON final
+      const libroCompleto = {
+        metadata: {
+          titulo: "El Eje del Olvido",
+          fecha_exportacion: new Date().toISOString(),
+          version: "2.0-LLM-OPTIMIZED"
+        },
+        glosario: glosarioEstructurado,
+        cuerpo_del_libro: capitulosRaw.map(cap => {
+          const imagenesCap = multimedia
+            ?.filter(m => m.capitulo_id === cap.id && m.tipo === 'imagen')
+            .sort((a, b) => (a.metadata?.index || 0) - (b.metadata?.index || 0))
+            .map(m => m.url_archivo) || [];
+
+          return {
+            n: cap.numero_orden,
+            t: cap.titulo,
+            c: cap.contenido,
+            galeria: imagenesCap.slice(0, 3) // Array de hasta 3 strings
+          };
+        })
+      };
+
+      // 6. Descargar el archivo con encoding UTF-8
+      const jsonString = JSON.stringify(libroCompleto, null, 2);
+      const blob = new Blob([jsonString], { type: 'application/json;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `el-eje-del-olvido-llm-data-${new Date().getTime()}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+
+      alert("DATA_EXPORT_PROTOCOL_COMPLETE // UTF-8_ENCODING_VERIFIED");
+    } catch (err) {
+      console.error("Export error:", err);
+      alert("EXPORT_SEQUENCE_FAILED: " + err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const toggleMute = () => {
     if (audioRef.current) {
       audioRef.current.muted = !audioRef.current.muted;
@@ -192,6 +268,13 @@ export default function Home() {
             <Link href="/mission-control/codex" className="flex items-center gap-3 text-[11px] font-mono text-cyan-500/80 hover:text-cyan-300 uppercase tracking-[0.2em] transition-all group">
               <FaBook className="text-sm group-hover:scale-110 transition-transform duration-500" /> [CODEX_CONTROL]
             </Link>
+            <div className="w-[1px] h-4 bg-cyan-500/20" />
+            <button 
+              onClick={exportFullBookData}
+              className="flex items-center gap-3 text-[11px] font-mono text-cyan-400 hover:text-white uppercase tracking-[0.2em] transition-all group"
+            >
+              <FaDownload className="text-sm group-hover:translate-y-1 transition-transform" /> [EXPORT_RAW_DATA]
+            </button>
           </>
         )}
       </div>

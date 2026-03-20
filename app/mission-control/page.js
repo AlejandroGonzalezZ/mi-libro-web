@@ -115,6 +115,13 @@ export default function MissionControl() {
 
     try {
       setIsUploading(true);
+      
+      // Validación de tamaño (Máximo 5MB)
+      const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+      if (file.size > MAX_FILE_SIZE) {
+        throw new Error(`El archivo es demasiado grande (${(file.size / (1024 * 1024)).toFixed(2)}MB). El límite es de 5MB.`);
+      }
+
       const bucket = type === 'audio' ? 'audios' : 'capitulos';
       const fileExt = file.name.split('.').pop();
       const fileName = `${selectedCap.id || 'new'}_${type}${index !== null ? `_${index}` : ''}_${Date.now()}.${fileExt}`;
@@ -127,7 +134,12 @@ export default function MissionControl() {
           upsert: true
         });
 
-      if (uploadError) throw uploadError;
+      if (uploadError) {
+        if (uploadError.message.includes('413')) {
+          throw new Error("Límite de tamaño del servidor superado. Por favor, sube una imagen más pequeña.");
+        }
+        throw uploadError;
+      }
 
       // Obtener URL pública
       const { data: { publicUrl } } = supabase.storage
