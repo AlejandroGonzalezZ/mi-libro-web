@@ -10,6 +10,7 @@ export default function CapituloPage() {
     const router = useRouter();
     const [capitulo, setCapitulo] = useState(null);
     const [multimedia, setMultimedia] = useState([]);
+    const [audioData, setAudioData] = useState(null);
     const [loading, setLoading] = useState(true);
     const [isPlaying, setIsPlaying] = useState(false);
     const [currentTime, setCurrentTime] = useState(0);
@@ -40,10 +41,16 @@ export default function CapituloPage() {
                 const { data: media } = await supabase
                     .from("multimedia")
                     .select("*")
-                    .eq("capitulo_id", cap.id)
-                    .order('id', { ascending: true });
+                    .eq("capitulo_id", cap.id);
 
-                setMultimedia(media || []);
+                // Filtrar imágenes y ordenarlas por el índice guardado en metadata
+                const images = (media || []).filter(m => m.tipo === 'imagen');
+                const sortedImages = images.sort((a, b) => (a.metadata?.index || 0) - (b.metadata?.index || 0));
+                setMultimedia(sortedImages);
+
+                // Buscar el audio
+                const audio = (media || []).find(m => m.tipo === 'audio');
+                setAudioData(audio);
 
                 // Registro de progreso si el usuario existe
                 const email = localStorage.getItem('galact_citizen_email');
@@ -310,7 +317,7 @@ export default function CapituloPage() {
 
             <audio
                 ref={audioRef}
-                src={capitulo.audio_url || (multimedia.find(m => m.tipo === 'audio')?.url_archivo) || "/audio/placeholder.mp3"}
+                src={capitulo.audio_url || audioData?.url_archivo || "/audio/placeholder.mp3"}
                 onTimeUpdate={handleTimeUpdate}
                 onLoadedMetadata={handleTimeUpdate}
                 onEnded={() => setIsPlaying(false)}

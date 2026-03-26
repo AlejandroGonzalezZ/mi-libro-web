@@ -116,17 +116,29 @@ export default function MissionControl() {
     try {
       setIsUploading(true);
       
-      // Validación de tamaño (Máximo 5MB)
+      // 1. Validación de tipo de archivo
+      if (type === 'audio' && !file.type.startsWith('audio/')) {
+        throw new Error("Formato inválido: El archivo debe ser un audio (MP3, WAV, etc.).");
+      }
+      if (type === 'image' && !file.type.startsWith('image/')) {
+        throw new Error("Formato inválido: El archivo debe ser una imagen (JPG, PNG, WEBP, etc.).");
+      }
+
+      // 2. Validación de tamaño (Máximo 5MB)
       const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
       if (file.size > MAX_FILE_SIZE) {
-        throw new Error(`El archivo es demasiado grande (${(file.size / (1024 * 1024)).toFixed(2)}MB). El límite es de 5MB.`);
+        throw new Error(`El archivo es demasiado pesado (${(file.size / (1024 * 1024)).toFixed(2)}MB). El límite máximo es de 5MB por protocolo de seguridad.`);
       }
 
       const bucket = type === 'audio' ? 'audios' : 'capitulos';
       const fileExt = file.name.split('.').pop();
       const fileName = `${selectedCap.id || 'new'}_${type}${index !== null ? `_${index}` : ''}_${Date.now()}.${fileExt}`;
 
-      // CARGA DIRECTA DESDE EL CLIENTE (Evita error 413 de Vercel)
+      // 3. Intento de subida con detección de estado de red
+      if (!navigator.onLine) {
+        throw new Error("Sin conexión: No se ha podido establecer contacto con el satélite. Revisa tu internet.");
+      }
+
       const { data: uploadData, error: uploadError } = await supabase.storage
         .from(bucket)
         .upload(fileName, file, {
@@ -136,9 +148,12 @@ export default function MissionControl() {
 
       if (uploadError) {
         if (uploadError.message.includes('413')) {
-          throw new Error("Límite de tamaño del servidor superado. Por favor, sube una imagen más pequeña.");
+          throw new Error("Límite de transferencia superado: La imagen excede lo permitido por el servidor.");
         }
-        throw uploadError;
+        if (uploadError.status === 403 || uploadError.message.includes('Policy')) {
+          throw new Error("Acceso denegado: No tienes permisos de nivel Comandante para escribir en este sector de memoria.");
+        }
+        throw new Error(`Fallo en el servidor de almacenamiento: ${uploadError.message}`);
       }
 
       // Obtener URL pública
@@ -156,7 +171,7 @@ export default function MissionControl() {
         };
         
         const result = await saveMediaAction(audioData);
-        if (!result.success) throw new Error(result.error);
+        if (!result.success) throw new Error("Error al vincular el audio en la base de datos: " + result.error);
         
         setAudio(result.data);
         setAudioUrl(publicUrl);
@@ -172,15 +187,15 @@ export default function MissionControl() {
         };
 
         const result = await saveMediaAction(imageData);
-        if (!result.success) throw new Error(result.error);
+        if (!result.success) throw new Error("Error al vincular la imagen en la base de datos: " + result.error);
         
         const newImgs = [...images];
         newImgs[index] = result.data;
         setImages(newImgs);
       }
     } catch (err) {
-      console.error("Upload error:", err.message);
-      alert("Error uploading file: " + err.message);
+      console.error("Critical Upload protocol failure:", err.message);
+      alert("⚠️ DATA_STORAGE_ERROR: " + err.message);
     } finally {
       setIsUploading(false);
     }
