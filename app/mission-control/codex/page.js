@@ -34,10 +34,25 @@ export default function CodexControl() {
 
   async function checkAdmin() {
     const email = localStorage.getItem('galact_citizen_email');
-    if (!email) { router.push('/'); return; }
-    const { data: user } = await supabase.from('usuarios').select('is_admin').eq('correo', email).single();
-    if (!user?.is_admin) router.push('/');
-    else setIsAdmin(true);
+    if (!email) {
+      router.push('/');
+      return;
+    }
+
+    try {
+      const res = await fetch(`/api/usuarios?email=${encodeURIComponent(email)}`);
+      const data = await res.json();
+      const user = data.user;
+
+      if (!user?.is_admin) {
+        router.push('/');
+      } else {
+        setIsAdmin(true);
+      }
+    } catch (err) {
+      console.error("Admin check failed:", err);
+      router.push('/');
+    }
   }
 
   async function fetchCodex() {

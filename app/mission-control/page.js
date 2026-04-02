@@ -51,16 +51,19 @@ export default function MissionControl() {
       return;
     }
 
-    const { data: user } = await supabase
-      .from('usuarios')
-      .select('is_admin')
-      .eq('correo', email)
-      .single();
+    try {
+      const res = await fetch(`/api/usuarios?email=${encodeURIComponent(email)}`);
+      const data = await res.json();
+      const user = data.user;
 
-    if (!user?.is_admin) {
+      if (!user?.is_admin) {
+        router.push('/');
+      } else {
+        setIsAdmin(true);
+      }
+    } catch (err) {
+      console.error("Admin check failed:", err);
       router.push('/');
-    } else {
-      setIsAdmin(true);
     }
   }
 
@@ -139,27 +142,18 @@ export default function MissionControl() {
         throw new Error("Sin conexión: No se ha podido establecer contacto con el satélite. Revisa tu internet.");
       }
 
-      const { data: uploadData, error: uploadError } = await supabase.storage
-        .from(bucket)
-        .upload(fileName, file, {
-          cacheControl: '3600',
-          upsert: true
-        });
+      const uploadFormData = new FormData();
+      uploadFormData.append('file', file);
+      uploadFormData.append('bucket', bucket);
+      uploadFormData.append('fileName', fileName);
 
-      if (uploadError) {
-        if (uploadError.message.includes('413')) {
-          throw new Error("Límite de transferencia superado: La imagen excede lo permitido por el servidor.");
-        }
-        if (uploadError.status === 403 || uploadError.message.includes('Policy')) {
-          throw new Error("Acceso denegado: No tienes permisos de nivel Comandante para escribir en este sector de memoria.");
-        }
-        throw new Error(`Fallo en el servidor de almacenamiento: ${uploadError.message}`);
+      const uploadResult = await uploadFileAction(uploadFormData);
+
+      if (!uploadResult.success) {
+        throw new Error(`Fallo en el servidor de comunicación: ${uploadResult.error}`);
       }
 
-      // Obtener URL pública
-      const { data: { publicUrl } } = supabase.storage
-        .from(bucket)
-        .getPublicUrl(fileName);
+      const publicUrl = uploadResult.publicUrl;
 
       if (type === 'audio') {
         const audioData = {
