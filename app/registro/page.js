@@ -37,19 +37,23 @@ export default function RegistroPage() {
             // Determinar si es admin
             const isAdmin = formData.correo.toLowerCase() === "alejandro.gonzalez.z@outlook.com";
 
-            const { error } = await supabase
-                .from('usuarios')
-                .upsert({
+            const response = await fetch('/api/usuarios', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
                     correo: formData.correo.toLowerCase(),
                     nombre: formData.nombre,
                     raza: formData.raza,
                     rango_soldado: formData.rango,
                     is_admin: isAdmin
-                });
+                })
+            });
+
+            const result = await response.json();
 
             clearInterval(interval);
 
-            if (error) throw error;
+            if (!response.ok) throw new Error(result.error || 'Sync Error');
 
             setSyncProgress(100);
             setStatus('SUCCESS');

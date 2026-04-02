@@ -3,12 +3,12 @@ import { supabaseAdmin } from './lib/supabase-admin.js';
 
 async function setupBuckets() {
   const buckets = ['capitulos', 'audios'];
-  
+
   for (const bucket of buckets) {
     console.log(`Checking bucket: ${bucket}`);
     const { data: list } = await supabaseAdmin.storage.listBuckets();
     const exists = list?.find(b => b.name === bucket);
-    
+
     if (!exists) {
       console.log(`Creating bucket: ${bucket}`);
       const { error } = await supabaseAdmin.storage.createBucket(bucket, {

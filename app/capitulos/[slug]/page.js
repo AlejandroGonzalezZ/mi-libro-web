@@ -55,12 +55,19 @@ export default function CapituloPage() {
                 // Registro de progreso si el usuario existe
                 const email = localStorage.getItem('galact_citizen_email');
                 if (email) {
-                    supabase.from('progreso').insert({
-                        correo_usuario: email,
-                        capitulo_slug: slug
-                    }).then(({ error }) => {
-                        if (error) console.error("Error saving progress:", error.message);
-                    });
+                    fetch('/api/progreso', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            correo: email,
+                            capitulo_slug: slug
+                        })
+                    }).then(async (res) => {
+                        if (!res.ok) {
+                            const errorData = await res.json();
+                            console.error("Error saving progress:", errorData.error);
+                        }
+                    }).catch(err => console.error("Error saving progress:", err));
                 }
             }
             setLoading(false);

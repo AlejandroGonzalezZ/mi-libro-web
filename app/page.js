@@ -67,11 +67,9 @@ export default function Home() {
     const email = localStorage.getItem('galact_citizen_email');
     if (email) {
       try {
-        const { data: user, error } = await supabase
-          .from('usuarios')
-          .select('*')
-          .eq('correo', email)
-          .single();
+        const userRes = await fetch(`/api/usuarios?email=${encodeURIComponent(email)}`);
+        const userData = await userRes.json();
+        const user = userData.user;
 
         if (user) {
           setUserData(user);
@@ -83,14 +81,10 @@ export default function Home() {
             sessionStorage.setItem('welcome_shown', 'true');
           }
 
-          // Buscar último capítulo leído
-          const { data: prog } = await supabase
-            .from('progreso')
-            .select('capitulo_slug')
-            .eq('correo_usuario', email)
-            .order('fecha_lectura', { ascending: false })
-            .limit(1)
-            .single();
+          // Buscar último capítulo leído a través de la API
+          const progRes = await fetch(`/api/progreso?email=${encodeURIComponent(email)}`);
+          const progData = await progRes.json();
+          const prog = progData.progress;
 
           if (prog && capsList) {
             const currentCap = capsList.find(c => c.slug === prog.capitulo_slug);
