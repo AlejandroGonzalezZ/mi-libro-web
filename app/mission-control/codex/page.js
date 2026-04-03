@@ -7,7 +7,7 @@ import {
   FaArrowLeft, FaSave, FaPlus, FaTrash, FaImage, FaSearch, 
   FaDna, FaUserAstronaut, FaGlobeAmericas, FaRocket, FaBook
 } from 'react-icons/fa';
-import { saveCodexAction, deleteCodexAction, uploadFileAction } from '../actions';
+import { saveCodexAction, deleteCodexAction, getSignedUploadUrlAction } from '../actions';
 
 export default function CodexControl() {
   const router = useRouter();
@@ -96,16 +96,33 @@ export default function CodexControl() {
 
     try {
       setIsUploading(true);
+      
+      // 1. Validación de tamaño (6MB)
+      const MAX_FILE_SIZE = 6 * 1024 * 1024;
+      if (file.size > MAX_FILE_SIZE) {
+        throw new Error("Archivo demasiado pesado (Límite: 6MB).");
+      }
+
       const fileName = `codex_${Date.now()}_${file.name.replace(/\s+/g, '_')}`;
-      const uploadFormData = new FormData();
-      uploadFormData.append('file', file);
-      uploadFormData.append('bucket', 'capitulos');
-      uploadFormData.append('fileName', fileName);
+      const bucket = 'capitulos';
 
-      const result = await uploadFileAction(uploadFormData);
-      if (!result.success) throw new Error(result.error);
+      // 2. Obtener URL firmada
+      const signingResult = await getSignedUploadUrlAction(bucket, fileName);
+      if (!signingResult.success) throw new Error(signingResult.error);
 
-      setFormData(prev => ({ ...prev, imagen_referencia: result.publicUrl }));
+      // 3. Subida directa
+      const { error: uploadError } = await supabase.storage
+        .from(bucket)
+        .uploadToSignedUrl(fileName, signingResult.token, file);
+
+      if (uploadError) throw new Error(uploadError.message);
+
+      // 4. Obtener URL pública
+      const { data: { publicUrl } } = supabase.storage
+        .from(bucket)
+        .getPublicUrl(fileName);
+
+      setFormData(prev => ({ ...prev, imagen_referencia: publicUrl }));
       e.target.value = ''; // Reset input
     } catch (err) {
       console.error("Upload error:", err.message);
