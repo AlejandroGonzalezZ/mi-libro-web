@@ -8,7 +8,7 @@ import {
   FaPlay, FaPause, FaExclamationTriangle, FaChartLine,
   FaDatabase, FaImage, FaHeadphones, FaRocket
 } from 'react-icons/fa';
-import { saveChapterAction, saveMediaAction, deleteMediaAction, uploadFileAction, deleteFileAction } from './actions';
+import { saveChapterAction, saveMediaAction, deleteMediaAction, getSignedUploadUrlAction, deleteFileAction } from './actions';
 
 export default function MissionControl() {
   const router = useRouter();
@@ -127,10 +127,10 @@ export default function MissionControl() {
         throw new Error("Formato inválido: El archivo debe ser una imagen (JPG, PNG, WEBP, etc.).");
       }
 
-      // 2. Validación de tamaño (Máximo 5MB)
-      const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+      // 2. Validación de tamaño (Máximo 6MB)
+      const MAX_FILE_SIZE = 6 * 1024 * 1024; // 6MB
       if (file.size > MAX_FILE_SIZE) {
-        throw new Error(`El archivo es demasiado pesado (${(file.size / (1024 * 1024)).toFixed(2)}MB). El límite máximo es de 5MB por protocolo de seguridad.`);
+        throw new Error(`El archivo es demasiado pesado (${(file.size / (1024 * 1024)).toFixed(2)}MB). El límite máximo es de 6MB para asegurar compatibilidad galáctica.`);
       }
 
       const bucket = type === 'audio' ? 'audios' : 'capitulos';
@@ -142,18 +142,27 @@ export default function MissionControl() {
         throw new Error("Sin conexión: No se ha podido establecer contacto con el satélite. Revisa tu internet.");
       }
 
-      const uploadFormData = new FormData();
-      uploadFormData.append('file', file);
-      uploadFormData.append('bucket', bucket);
-      uploadFormData.append('fileName', fileName);
-
-      const uploadResult = await uploadFileAction(uploadFormData);
-
-      if (!uploadResult.success) {
-        throw new Error(`Fallo en el servidor de comunicación: ${uploadResult.error}`);
+      // 4. Obtener URL firmada para subida directa (Bypassing Vercel 4.5MB limit)
+      const signingResult = await getSignedUploadUrlAction(bucket, fileName);
+      if (!signingResult.success) {
+        throw new Error(`Fallo en la autorización de subida: ${signingResult.error}`);
       }
 
-      const publicUrl = uploadResult.publicUrl;
+      // 5. Subida directa a Supabase Storage
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from(bucket)
+        .uploadToSignedUrl(fileName, signingResult.token, file);
+
+      if (uploadError) {
+        throw new Error(`Error en la transmisión directa: ${uploadError.message}`);
+      }
+
+      // 6. Generar URL pública
+      const { data: { publicUrl } } = supabase.storage
+        .from(bucket)
+        .getPublicUrl(fileName);
+
+      if (!publicUrl) throw new Error("No se pudo generar la frecuencia de enlace pública.");
 
       if (type === 'audio') {
         const audioData = {

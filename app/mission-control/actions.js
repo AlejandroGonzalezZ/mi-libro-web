@@ -91,42 +91,26 @@ export async function deleteCodexAction(id) {
   }
 }
 
-export async function uploadFileAction(formData) {
+export async function getSignedUploadUrlAction(bucket, fileName) {
   try {
-    const file = formData.get('file');
-    const bucket = formData.get('bucket');
-    const fileName = formData.get('fileName');
-
-    if (!file || !bucket || !fileName) {
+    if (!bucket || !fileName) {
       throw new Error("CRITICAL_UPLOAD_ERROR: Missing required telemetry.");
     }
 
-    const arrayBuffer = await file.arrayBuffer();
-    const buffer = Buffer.from(arrayBuffer);
-
-    console.log(`Starting upload to Supabase: ${bucket}/${fileName}, Size: ${buffer.length} bytes`);
-
-    const { error: uploadError } = await supabaseAdmin.storage
+    const { data, error: signingError } = await supabaseAdmin.storage
       .from(bucket)
-      .upload(fileName, buffer, {
-        contentType: file.type || 'application/octet-stream',
-        upsert: true
-      });
+      .createSignedUploadUrl(fileName, { upsert: true });
 
-    if (uploadError) {
-      console.error("Supabase Storage Upload Error:", uploadError);
-      throw uploadError;
+    if (signingError) {
+      console.error("Supabase Storage Signing Error:", signingError);
+      throw signingError;
     }
 
-    const { data } = supabaseAdmin.storage
-      .from(bucket)
-      .getPublicUrl(fileName);
+    if (!data?.signedUrl || !data?.token) throw new Error("Could not generate signed upload credentials.");
 
-    if (!data?.publicUrl) throw new Error("Could not generate public URL.");
-
-    return { success: true, publicUrl: data.publicUrl };
+    return { success: true, signedUrl: data.signedUrl, token: data.token };
   } catch (error) {
-    console.error("Action error (uploadFile):", error.message);
+    console.error("Action error (getSignedUploadUrl):", error.message);
     return { success: false, error: error.message };
   }
 }
