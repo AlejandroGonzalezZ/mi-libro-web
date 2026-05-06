@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { supabase } from '../../lib/supabase';
-import { FaChevronLeft, FaBook, FaSearch, FaUserAstronaut, FaDna, FaGlobeAmericas } from 'react-icons/fa';
+import { FaChevronLeft, FaBook, FaSearch, FaUserAstronaut, FaDna, FaGlobeAmericas, FaMicrochip, FaBiohazard } from 'react-icons/fa';
 
 export default function CodexPage() {
     const [items, setItems] = useState([]);
@@ -103,6 +103,12 @@ export default function CodexPage() {
                         >
                             <FaGlobeAmericas className="inline mr-2" /> Locations
                         </button>
+                        <button
+                            onClick={() => setActiveTab('tecnologia')}
+                            className={`px-4 py-2 text-[10px] font-mono uppercase tracking-widest border transition-all ${activeTab === 'tecnologia' ? 'bg-cyan-500 text-black border-cyan-400' : 'bg-transparent text-cyan-500 border-cyan-500/20 hover:border-cyan-500/50'}`}
+                        >
+                            <FaMicrochip className="inline mr-2" /> Tech & Concepts
+                        </button>
                     </div>
                 </div>
 
@@ -123,7 +129,7 @@ export default function CodexPage() {
                                         <h3 className="text-2xl font-black uppercase tracking-tight text-glow-cyan group-hover:text-white transition-colors">{item.nombre}</h3>
                                     </div>
                                     <div className="p-2 border border-cyan-500/20 rounded-sm">
-                                        {item.metadata?.tipo === 'personaje' ? <FaUserAstronaut className="text-cyan-400" /> : <FaDna className="text-cyan-400" />}
+                                        {item.metadata?.tipo === 'personaje' ? <FaUserAstronaut className="text-cyan-400" /> : item.metadata?.tipo === 'especie' ? <FaDna className="text-cyan-400" /> : item.metadata?.tipo === 'lugar' ? <FaGlobeAmericas className="text-cyan-400" /> : <FaMicrochip className="text-cyan-400" />}
                                     </div>
                                 </div>
 

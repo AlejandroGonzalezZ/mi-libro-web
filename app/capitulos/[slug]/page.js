@@ -75,6 +75,32 @@ export default function CapituloPage() {
         fetchData();
     }, [slug]);
 
+    // Protección contra copia y descarga
+    useEffect(() => {
+        const handleContextMenu = (e) => {
+            e.preventDefault();
+            alert("No se permite copiar el contenido ni descargar imágenes.");
+        };
+
+        const handleSelectStart = (e) => {
+            e.preventDefault();
+        };
+
+        const handleDragStart = (e) => {
+            e.preventDefault();
+        };
+
+        document.addEventListener("contextmenu", handleContextMenu);
+        document.addEventListener("selectstart", handleSelectStart);
+        document.addEventListener("dragstart", handleDragStart);
+
+        return () => {
+            document.removeEventListener("contextmenu", handleContextMenu);
+            document.removeEventListener("selectstart", handleSelectStart);
+            document.removeEventListener("dragstart", handleDragStart);
+        };
+    }, []);
+
     const togglePlay = () => {
         if (audioRef.current) {
             if (isPlaying) {
@@ -116,7 +142,7 @@ export default function CapituloPage() {
     if (!capitulo) return <div className="min-h-screen bg-[#020408] flex items-center justify-center text-red-500 font-mono">DATA CORRUPTION: CHAPTER NOT FOUND</div>;
 
     return (
-        <div className="min-h-screen bg-[#020408] text-white font-sans overflow-hidden p-6 md:p-12 flex flex-col items-center justify-start relative">
+        <div className="min-h-screen bg-[#020408] text-white font-sans overflow-hidden p-6 md:p-12 flex flex-col items-center justify-start relative select-none">
             {/* Background Nebula */}
             <div
                 className="fixed inset-0 z-0 bg-[#020408] bg-cover bg-center bg-no-repeat opacity-40 mix-blend-screen"

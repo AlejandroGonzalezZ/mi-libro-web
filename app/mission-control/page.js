@@ -320,6 +320,9 @@ export default function MissionControl() {
         </div>
         
         <div className="flex items-center gap-6 font-mono text-[10px] text-cyan-500/40">
+          <button onClick={() => router.push('/mission-control/restore')} className="px-3 py-1.5 border border-red-500/30 text-red-500 hover:bg-red-500 hover:text-black transition-all flex items-center gap-2 uppercase font-bold tracking-widest shadow-[0_0_10px_rgba(239,68,68,0.2)]">
+            <FaExclamationTriangle /> Rescue Mode
+          </button>
           <div className="flex flex-col items-end">
             <span>DATABASE_LINK: <span className="text-green-500">STABLE</span></span>
             <span>UPLINK_SPEED: 4.2 GB/S</span>

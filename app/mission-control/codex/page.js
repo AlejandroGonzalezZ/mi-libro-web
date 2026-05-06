@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { 
   FaArrowLeft, FaSave, FaPlus, FaTrash, FaImage, FaSearch, 
-  FaDna, FaUserAstronaut, FaGlobeAmericas, FaRocket, FaBook
+  FaDna, FaUserAstronaut, FaGlobeAmericas, FaRocket, FaBook, FaMicrochip, FaExclamationTriangle
 } from 'react-icons/fa';
 import { saveCodexAction, deleteCodexAction, getSignedUploadUrlAction } from '../actions';
 
@@ -173,7 +173,10 @@ export default function CodexControl() {
             <p className="text-[10px] font-mono text-cyan-400/60 uppercase tracking-[0.3em]">Knowledge_Archive // Admin_Root</p>
           </div>
         </div>
-        <div className="flex items-center gap-3 font-mono text-[10px]">
+        <div className="flex items-center gap-6 font-mono text-[10px]">
+          <button onClick={() => router.push('/mission-control/restore')} className="px-3 py-1.5 border border-red-500/30 text-red-500 hover:bg-red-500 hover:text-black transition-all flex items-center gap-2 uppercase font-bold tracking-widest shadow-[0_0_10px_rgba(239,68,68,0.2)]">
+            <FaExclamationTriangle /> Rescue Mode
+          </button>
           <div className="text-right">
             <div className="text-cyan-400">ARCHIVE_STATE: <span className="text-green-500">OPTIMIZED</span></div>
             <div className="opacity-40 tracking-widest">ENCRYPTION: AES-256-QUANTUM</div>
@@ -212,7 +215,7 @@ export default function CodexControl() {
                 >
                   <div className="flex justify-between items-center">
                     <h3 className="text-xs font-bold uppercase tracking-tight">{item.nombre}</h3>
-                    {item.metadata?.tipo === 'personaje' ? <FaUserAstronaut className="text-[10px] opacity-40" /> : item.metadata?.tipo === 'especie' ? <FaDna className="text-[10px] opacity-40" /> : <FaGlobeAmericas className="text-[10px] opacity-40" />}
+                    {item.metadata?.tipo === 'personaje' ? <FaUserAstronaut className="text-[10px] opacity-40" /> : item.metadata?.tipo === 'especie' ? <FaDna className="text-[10px] opacity-40" /> : item.metadata?.tipo === 'lugar' ? <FaGlobeAmericas className="text-[10px] opacity-40" /> : <FaMicrochip className="text-[10px] opacity-40" />}
                   </div>
                   <span className="text-[8px] font-mono text-cyan-500/30 uppercase tracking-widest">{item.metadata?.tipo || 'UNKNOWN'}</span>
                 </div>
@@ -263,6 +266,7 @@ export default function CodexControl() {
                           <option value="personaje">Character</option>
                           <option value="especie">Species</option>
                           <option value="lugar">Location</option>
+                          <option value="tecnologia">Technology & Concepts</option>
                         </select>
                       </div>
                       <div className="space-y-1">
