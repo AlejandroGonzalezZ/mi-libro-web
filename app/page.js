@@ -8,6 +8,9 @@ import { FaVolumeUp, FaVolumeMute, FaArrowRight, FaRocket, FaDatabase, FaBook, F
 export default function Home() {
   const [capitulos, setCapitulos] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [synopsis, setSynopsis] = useState('');
+  const [synopsisAudioUrl, setSynopsisAudioUrl] = useState('');
+  const [isSynopsisPlaying, setIsSynopsisPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(true);
   const [activeSlug, setActiveSlug] = useState(null);
   const [timestamp, setTimestamp] = useState('');
@@ -15,6 +18,7 @@ export default function Home() {
   const [showWelcome, setShowWelcome] = useState(false);
   const [suggestedChapter, setSuggestedChapter] = useState(null);
   const audioRef = useRef(null);
+  const synopsisAudioRef = useRef(null);
 
   const carouselRef = useRef(null);
 
@@ -29,6 +33,7 @@ export default function Home() {
     const init = async () => {
       const caps = await fetchCapitulos();
       if (caps) checkUser(caps);
+      await fetchConfig();
     };
     init();
     setTimestamp(new Date().toISOString().split('T')[1].substring(0, 8));
@@ -118,6 +123,58 @@ export default function Home() {
       setLoading(false);
     }
   }
+
+  async function fetchConfig() {
+    try {
+      const { data, error } = await supabase
+        .from('config')
+        .select('key, value');
+
+      if (error) throw error;
+      
+      const configMap = (data || []).reduce((acc, curr) => {
+        acc[curr.key] = curr.value;
+        return acc;
+      }, {});
+
+      if (configMap.home_synopsis) setSynopsis(configMap.home_synopsis);
+      if (configMap.synopsis_audio_url) setSynopsisAudioUrl(configMap.synopsis_audio_url);
+    } catch (error) {
+      console.error('Error fetching config:', error.message);
+    }
+  }
+
+  const formatSynopsis = (text) => {
+    if (!text) return null;
+    
+    // Split by [[pattern]]
+    const parts = text.split(/(\[\[.*?\]\])/g);
+    
+    return parts.map((part, i) => {
+      if (part.startsWith('[[') && part.endsWith(']]')) {
+        const term = part.slice(2, -2);
+        return <span key={i} className="text-cyan-400 font-bold tracking-tight">{term}</span>;
+      }
+      return part;
+    });
+  };
+
+  const toggleSynopsisAudio = () => {
+    if (synopsisAudioRef.current) {
+      if (isSynopsisPlaying) {
+        synopsisAudioRef.current.pause();
+      } else {
+        // Mute background music if playing
+        if (!isMuted && audioRef.current) {
+          audioRef.current.muted = true;
+          setIsMuted(true);
+        }
+        synopsisAudioRef.current.play().catch(e => console.error("Error al reproducir sinopsis:", e));
+      }
+      setIsSynopsisPlaying(!isSynopsisPlaying);
+    }
+  };
+
 
   const exportFullBookData = async () => {
     try {
@@ -289,6 +346,48 @@ export default function Home() {
             <div>&gt; DRIVER_VER: 2.0.4-BETA</div>
           </div>
         </header>
+
+        {/* Synopsis Area */}
+        <section className="px-10 md:px-20 mb-8 z-20">
+          <div className="hud-panel-enclosed p-6 md:p-8 bg-black/60 backdrop-blur-md max-w-4xl relative group">
+            <div className="flex justify-between items-start mb-4">
+              <div className="flex flex-col">
+                <span className="text-[10px] font-mono text-cyan-500/40 uppercase tracking-[0.4em]">NEURAL_SYNOPSIS_FEED</span>
+                <div className="h-[1px] w-12 bg-cyan-500/30 mt-1" />
+              </div>
+              
+              {/* Audio Button */}
+              <button 
+                onClick={toggleSynopsisAudio}
+                className={`w-10 h-10 flex items-center justify-center rounded-full border transition-all ${isSynopsisPlaying ? 'bg-cyan-500 border-white text-black' : 'border-cyan-500/30 text-cyan-400 hover:bg-cyan-500/10'}`}
+              >
+                {isSynopsisPlaying ? (
+                  <div className="flex items-center gap-0.5">
+                    <div className="w-1 h-3 bg-black animate-[wave_1s_infinite_ease-in-out]" />
+                    <div className="w-1 h-4 bg-black animate-[wave_1s_infinite_ease-in-out_0.2s]" />
+                    <div className="w-1 h-2 bg-black animate-[wave_1s_infinite_ease-in-out_0.4s]" />
+                  </div>
+                ) : (
+                  <FaVolumeUp className="text-sm" />
+                )}
+              </button>
+            </div>
+
+            <div className="hud-scrollbar max-h-[160px] overflow-y-auto pr-4 text-sm md:text-base leading-relaxed text-cyan-50/70 font-light italic text-justify">
+              {synopsis ? formatSynopsis(synopsis) : "DATA_STREAM_PENDING..."}
+            </div>
+
+            <div className="absolute -bottom-1 -right-1 p-2 font-mono text-[8px] text-cyan-500/20 uppercase">
+              REC_ID: {timestamp}_SYN
+            </div>
+          </div>
+        </section>
+
+        <audio 
+          ref={synopsisAudioRef} 
+          src={synopsisAudioUrl || "/audio/placeholder.mp3"} 
+          onEnded={() => setIsSynopsisPlaying(false)}
+        />
 
         {/* Carousel Container */}
         <section className="flex-1 relative flex items-center min-h-[600px]">
