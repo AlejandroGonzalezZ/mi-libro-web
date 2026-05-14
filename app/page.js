@@ -348,37 +348,36 @@ export default function Home() {
         </header>
 
         {/* Synopsis Area */}
-        <section className="px-10 md:px-20 mb-8 z-20">
-          <div className="hud-panel-enclosed p-6 md:p-8 bg-black/60 backdrop-blur-md max-w-4xl relative group">
-            <div className="flex justify-between items-start mb-4">
+        <section className="px-10 md:px-20 mb-4 z-20">
+          <div className="hud-panel-enclosed p-4 bg-black/40 backdrop-blur-sm max-w-xl mx-auto relative group border-x-0 md:border-x">
+            <div className="flex justify-between items-center mb-2">
               <div className="flex flex-col">
-                <span className="text-[10px] font-mono text-cyan-500/40 uppercase tracking-[0.4em]">NEURAL_SYNOPSIS_FEED</span>
-                <div className="h-[1px] w-12 bg-cyan-500/30 mt-1" />
+                <span className="text-[9px] font-mono text-cyan-500/40 uppercase tracking-[0.4em]">NEURAL_SYNOPSIS_FEED</span>
               </div>
               
               {/* Audio Button */}
               <button 
                 onClick={toggleSynopsisAudio}
-                className={`w-10 h-10 flex items-center justify-center rounded-full border transition-all ${isSynopsisPlaying ? 'bg-cyan-500 border-white text-black' : 'border-cyan-500/30 text-cyan-400 hover:bg-cyan-500/10'}`}
+                className={`w-8 h-8 flex items-center justify-center rounded-full border transition-all ${isSynopsisPlaying ? 'bg-cyan-500 border-white text-black' : 'border-cyan-500/30 text-cyan-400 hover:bg-cyan-500/10'}`}
               >
                 {isSynopsisPlaying ? (
                   <div className="flex items-center gap-0.5">
-                    <div className="w-1 h-3 bg-black animate-[wave_1s_infinite_ease-in-out]" />
-                    <div className="w-1 h-4 bg-black animate-[wave_1s_infinite_ease-in-out_0.2s]" />
-                    <div className="w-1 h-2 bg-black animate-[wave_1s_infinite_ease-in-out_0.4s]" />
+                    <div className="w-0.5 h-2 bg-black animate-[wave_1s_infinite_ease-in-out]" />
+                    <div className="w-0.5 h-3 bg-black animate-[wave_1s_infinite_ease-in-out_0.2s]" />
+                    <div className="w-0.5 h-1.5 bg-black animate-[wave_1s_infinite_ease-in-out_0.4s]" />
                   </div>
                 ) : (
-                  <FaVolumeUp className="text-sm" />
+                  <FaVolumeUp className="text-xs" />
                 )}
               </button>
             </div>
 
-            <div className="hud-scrollbar max-h-[160px] overflow-y-auto pr-4 text-sm md:text-base leading-relaxed text-cyan-50/70 font-light italic text-justify">
+            <div className="hud-scrollbar max-h-[80px] overflow-y-auto pr-3 text-xs md:text-sm leading-relaxed text-cyan-50/60 font-light italic text-justify">
               {synopsis ? formatSynopsis(synopsis) : "DATA_STREAM_PENDING..."}
             </div>
 
-            <div className="absolute -bottom-1 -right-1 p-2 font-mono text-[8px] text-cyan-500/20 uppercase">
-              REC_ID: {timestamp}_SYN
+            <div className="absolute -bottom-1 right-2 font-mono text-[7px] text-cyan-500/20 uppercase">
+              SYNC_ID: {timestamp}
             </div>
           </div>
         </section>
