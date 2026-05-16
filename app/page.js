@@ -480,17 +480,24 @@ export default function Home() {
         </section>
 
         {/* Footer Area */}
-        <footer className="p-10 md:p-12 mt-auto border-t border-cyan-500/10 bg-black/40 backdrop-blur-md flex justify-between items-end font-mono text-[9px] text-cyan-500/30 uppercase tracking-[0.4em]">
-          <div className="space-y-2">
+        <footer className="p-10 md:p-12 mt-auto border-t border-cyan-500/10 bg-black/40 backdrop-blur-md flex flex-col md:flex-row justify-between items-center md:items-end font-mono text-[9px] text-cyan-500/30 uppercase tracking-[0.4em] gap-8 md:gap-0">
+          <div className="space-y-2 w-full md:w-auto">
             <div className="text-cyan-500/60 uppercase">System_Info:</div>
             <div>OUTER_REG_ID: 21-S1TX-08-Ω</div>
             <div>STATION_LINK: ALPHA_TERMINAL</div>
             <div>TIMESTAMP: {timestamp} UTC</div>
           </div>
-          <div className="text-right space-y-2">
+          
+          <div className="flex flex-col items-center gap-1 opacity-80 group">
+            <div className="text-cyan-500/40 text-[7px] tracking-[0.8em] group-hover:text-cyan-400/60 transition-colors">DESIGNED_AND_WRITTEN_BY:</div>
+            <div className="text-cyan-400 font-bold tracking-[0.3em] text-[11px] group-hover:text-white transition-colors">ALEJANDRO GONZÁLEZ ZÚÑIGA</div>
+            <div className="text-cyan-500/20 text-[7px] group-hover:text-cyan-400/40 transition-colors">NARRATIVE_ARCHITECT // LEAD_DEVELOPER</div>
+          </div>
+
+          <div className="text-right space-y-2 w-full md:w-auto">
             <div>COORD_TELEMETRY: [226.321, -96.120]</div>
             <div>SYNC_STATE: 100% // [LOCAL_NODE]</div>
-            <div className="flex items-center gap-2 justify-end">
+            <div className="flex items-center gap-2 justify-center md:justify-end">
               <span className="w-1.5 h-1.5 bg-cyan-400 rounded-full animate-pulse shadow-[0_0_8px_#22d3ee]" />
               DATA_LINK: ESTABLISHED
             </div>

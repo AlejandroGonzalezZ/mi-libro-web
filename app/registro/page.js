@@ -253,6 +253,13 @@ export default function RegistroPage() {
                     </div>
                 </div>
             </div>
+            
+            <footer className="fixed bottom-6 left-0 w-full z-30 px-10 pointer-events-none">
+                <div className="flex flex-col items-center gap-0.5 opacity-30">
+                    <span className="text-[7px] font-mono text-cyan-500/40 uppercase tracking-[0.4em]">ENROLLMENT_OFFICER:</span>
+                    <span className="text-[9px] font-mono text-cyan-400 font-bold uppercase tracking-widest">ALEJANDRO GONZÁLEZ ZÚÑIGA</span>
+                </div>
+            </footer>
         </main>
     );
 }

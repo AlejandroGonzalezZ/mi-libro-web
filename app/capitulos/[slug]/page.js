@@ -344,6 +344,10 @@ export default function CapituloPage() {
                                 </div>
                             </div>
                         </div>
+                    <div className="mt-8 mb-4 flex flex-col items-center gap-1 opacity-40">
+                        <span className="text-[7px] font-mono text-cyan-500/60 uppercase tracking-[0.4em]">Auth_Signature:</span>
+                        <span className="text-[9px] font-mono text-cyan-400 font-bold uppercase tracking-[0.2em]">Escrito y desarrollado por Alejandro González Zúñiga</span>
+                        <div className="h-[1px] w-12 bg-cyan-500/20 mt-1" />
                     </div>
                 </div>
             </main>

@@ -167,6 +167,14 @@ export default function CodexPage() {
                 )}
             </div>
 
+            <footer className="mt-20 border-t border-cyan-500/10 py-10 flex flex-col items-center gap-4">
+                <div className="flex flex-col items-center gap-1 opacity-60">
+                    <span className="text-[8px] font-mono text-cyan-500/40 uppercase tracking-[0.6em]">CODEX_CURATOR:</span>
+                    <span className="text-[11px] font-mono text-cyan-400 font-bold tracking-widest">ALEJANDRO GONZÁLEZ ZÚÑIGA</span>
+                    <span className="text-[7px] font-mono text-cyan-500/20 uppercase">Interstellar_Narrative_Protocol // V4.0</span>
+                </div>
+            </footer>
+
             <style jsx global>{`
         @keyframes loading {
           0% { left: -100%; width: 100%; }

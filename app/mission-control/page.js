@@ -597,11 +597,17 @@ export default function MissionControl() {
       </div>
 
       {/* FOOTER STATS */}
-      <footer className="relative z-10 flex justify-between items-center text-[8px] font-mono text-cyan-500/30 uppercase mt-auto pt-4 border-t border-cyan-500/10">
+      <footer className="relative z-10 flex flex-col md:flex-row justify-between items-center text-[8px] font-mono text-cyan-500/30 uppercase mt-auto pt-4 border-t border-cyan-500/10 gap-4 md:gap-0">
         <div className="flex gap-10">
           <span>Total Word Count: 142,890</span>
           <span>Index Size: 1.4 GB</span>
         </div>
+        
+        <div className="flex flex-col items-center gap-0.5 opacity-60">
+           <span className="text-[7px] text-cyan-500/40 tracking-[0.4em]">ADMIN_ARCHITECT:</span>
+           <span className="text-cyan-400 font-bold tracking-widest">ALEJANDRO GONZÁLEZ ZÚÑIGA</span>
+        </div>
+
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2">
             <div className="w-1.5 h-1.5 bg-cyan-400 rounded-full animate-pulse shadow-[0_0_5px_#22d3ee]"></div>
